@@ -54,10 +54,11 @@
     reveals.forEach(function (el) { el.classList.add('is-in'); });
   }
 
-  // Mark current page in nav
-  var path = location.pathname.split('/').pop() || 'index.html';
+  // Mark current page in nav.
+  // Handles both "/music.html" and the clean-URL form "/music".
+  var last = location.pathname.split('/').pop();
+  var path = !last ? 'index.html' : (/\.html$/.test(last) ? last : last + '.html');
   document.querySelectorAll('.nav__links a').forEach(function (a) {
-    var href = a.getAttribute('href');
-    if (href === path) a.classList.add('is-active');
+    if (a.getAttribute('href') === path) a.classList.add('is-active');
   });
 })();
