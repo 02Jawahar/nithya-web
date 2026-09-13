@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Content manager — Nitya Lanka</title>
+<link rel="stylesheet" href="assets/admin.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar__brand">
+    <span class="mark">NL</span>
+    <div>
+      <strong>Content manager</strong>
+      <small id="siteUser">&nbsp;</small>
+    </div>
+  </div>
+
+  <div class="topbar__actions">
+    <span class="pending" id="pendingBadge" hidden></span>
+    <button class="btn btn--ghost" id="btnDiscard" hidden>Discard changes</button>
+    <button class="btn btn--primary" id="btnPublish" disabled>Publish</button>
+    <div class="menu">
+      <button class="btn btn--icon" id="btnMenu" aria-label="Menu">&#9776;</button>
+      <div class="menu__list" id="menuList" hidden>
+        <button data-open="media">Images &amp; files</button>
+        <button data-open="versions">Version history</button>
+        <button data-open="account">Account</button>
+        <a id="viewLive" href="../" target="_blank" rel="noopener">View live site</a>
+        <button id="btnLogout" class="danger">Sign out</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+
+  <nav class="pages" aria-label="Pages">
+    <p class="pages__title">Pages</p>
+    <ul id="pageList"></ul>
+    <div class="pages__help">
+      <strong>How this works</strong>
+      <p>Your edits are saved as a draft straight away. Nothing changes on the public site until you press <b>Publish</b>.</p>
+    </div>
+  </nav>
+
+  <section class="editor" aria-label="Fields">
+    <div class="editor__head">
+      <h2 id="pageTitle">Loading…</h2>
+      <input type="search" id="search" placeholder="Search this page…" aria-label="Search fields">
+    </div>
+    <div class="editor__body" id="groups"></div>
+  </section>
+
+  <section class="preview" aria-label="Preview">
+    <div class="preview__bar">
+      <span class="dot"></span>
+      <span id="previewLabel">Draft preview</span>
+      <div class="spacer"></div>
+      <button class="chip" data-width="390">Phone</button>
+      <button class="chip" data-width="820">Tablet</button>
+      <button class="chip is-on" data-width="0">Full</button>
+    </div>
+    <div class="preview__stage" id="stage">
+      <iframe id="frame" title="Draft preview"></iframe>
+    </div>
+  </section>
+
+</main>
+
+<!-- Images & files -->
+<div class="modal" id="modal-media" hidden>
+  <div class="modal__card">
+    <header><h3>Images &amp; files</h3><button class="x" data-close>&times;</button></header>
+    <div class="modal__body">
+      <div class="drop" id="drop">
+        <p><b>Drop files here</b> or <button class="linkish" id="pick">browse</button></p>
+        <small>Images (JPG, PNG, WebP, GIF, SVG), video (MP4, WebM, MOV) or PDF — up to 25 MB each.</small>
+        <input type="file" id="file" multiple hidden
+               accept="image/png,image/jpeg,image/webp,image/gif,image/avif,image/svg+xml,application/pdf,video/mp4,video/webm,video/ogg,video/quicktime">
+      </div>
+      <div class="media" id="mediaList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Versions -->
+<div class="modal" id="modal-versions" hidden>
+  <div class="modal__card">
+    <header><h3>Version history</h3><button class="x" data-close>&times;</button></header>
+    <div class="modal__body">
+      <p class="note">A snapshot is taken every time you publish. Restoring loads that version back
+        into your draft — you still have to press Publish to put it on the live site.</p>
+      <div class="versions" id="versionList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Account -->
+<div class="modal" id="modal-account" hidden>
+  <div class="modal__card">
+    <header><h3>Account</h3><button class="x" data-close>&times;</button></header>
+    <div class="modal__body">
+      <form id="pwForm" class="form">
+        <label>Email<input name="username" id="pwUser" type="email" autocomplete="username"></label>
+        <label>Current password<input name="current" type="password" required autocomplete="current-password"></label>
+        <label>New password<input name="next" type="password" required minlength="8" autocomplete="new-password"></label>
+        <p class="note" id="pwNote">At least 8 characters.</p>
+        <button class="btn btn--primary" type="submit">Update credentials</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="assets/admin.js"></script>
+</body>
+</html>

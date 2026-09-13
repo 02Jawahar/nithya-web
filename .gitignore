@@ -4,3 +4,10 @@ Desktop.ini
 .DS_Store
 .vscode/
 .idea/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# CMS content, uploads and snapshots (runtime state, lives on a volume)
+data/

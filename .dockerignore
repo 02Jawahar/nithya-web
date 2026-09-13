@@ -3,3 +3,7 @@
 .dockerignore
 Dockerfile
 README.md
+CMS.md
+node_modules
+data
+npm-debug.log*
