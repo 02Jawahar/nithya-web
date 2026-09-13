@@ -208,6 +208,13 @@ function analyze($, options) {
       field.href = $(el).attr('href') || '';
     }
 
+    // The initials are only a fallback, which is not obvious sitting next
+    // to the real logo setting.
+    if (/brand__mark/.test(el.attribs && el.attribs.class ? el.attribs.class : '')) {
+      field.hint = 'Only shown when no logo image is uploaded. '
+        + 'To use a picture instead, open "Logo (all pages)" above.';
+    }
+
     applyVisibility(el, ov, field);
     if (preview) $(el).attr('data-cms-key', key);
     emit(group, field);

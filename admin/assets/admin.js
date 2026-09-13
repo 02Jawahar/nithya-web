@@ -467,7 +467,10 @@ function buildMediaPanel(group) {
 }
 
 function buildGroup(group, index) {
-  const box = el('div', 'group' + (index === 0 ? ' is-open' : '') + (group.hidden ? ' is-hidden' : ''));
+  // Page settings and the logo both open by default - the logo especially,
+  // since a collapsed row is where people stop looking for the upload.
+  const openByDefault = index === 0 || group.id === 'site';
+  const box = el('div', 'group' + (openByDefault ? ' is-open' : '') + (group.hidden ? ' is-hidden' : ''));
   const head = el('div', 'group__head');
   head.append(el('span', 'caret', '▶'));
   head.append(el('h3', null, group.label));
