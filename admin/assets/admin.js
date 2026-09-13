@@ -126,6 +126,89 @@ function richToolbar(editable) {
   return bar;
 }
 
+/* ------------------------------------------------- image picker */
+// One component behind every image slot: the fixed page slots, the site
+// logo, and the images inside media blocks. Upload straight from the
+// field, drop a file on it, or reuse something already in the library.
+async function uploadOne(file) {
+  const body = new FormData();
+  body.append('files', file);
+  const res = await api('/media', { method: 'POST', body });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Upload failed');
+  return data.files[0].url;
+}
+
+function imagePicker(value, onChange) {
+  const box = el('div', 'picker');
+  const drop = el('div', 'picker__drop');
+  const img = el('img', 'picker__img');
+  const empty = el('div', 'picker__empty');
+  empty.append(el('b', null, 'Drop an image here'));
+  empty.append(el('span', null, 'or click to choose a file'));
+  const file = el('input');
+  file.type = 'file';
+  file.accept = 'image/png,image/jpeg,image/webp,image/gif,image/avif,image/svg+xml';
+  file.hidden = true;
+
+  const row = el('div', 'picker__row');
+  const upBtn = el('button', 'tool', 'Upload');
+  const libBtn = el('button', 'tool', 'Library');
+  const clrBtn = el('button', 'tool', 'Remove');
+  [upBtn, libBtn, clrBtn].forEach((b) => { b.type = 'button'; });
+  row.append(upBtn, libBtn, clrBtn);
+
+  let current = value || '';
+
+  function paint() {
+    const has = !!current;
+    img.hidden = !has;
+    empty.hidden = has;
+    clrBtn.hidden = !has;
+    drop.classList.toggle('is-filled', has);
+    if (has) img.src = current;
+  }
+
+  function set(url) {
+    current = url || '';
+    paint();
+    onChange(current);
+  }
+
+  async function take(files) {
+    if (!files || !files.length) return;
+    drop.classList.add('is-busy');
+    try {
+      set(await uploadOne(files[0]));
+      toast('Image uploaded', 'ok');
+    } catch (e) {
+      toast(e.message, 'bad');
+    } finally {
+      drop.classList.remove('is-busy');
+    }
+  }
+
+  drop.onclick = () => file.click();
+  upBtn.onclick = () => file.click();
+  file.onchange = (e) => { take(e.target.files); e.target.value = ''; };
+
+  ['dragenter', 'dragover'].forEach((t) => drop.addEventListener(t, (e) => {
+    e.preventDefault(); drop.classList.add('is-over');
+  }));
+  ['dragleave', 'drop'].forEach((t) => drop.addEventListener(t, (e) => {
+    e.preventDefault(); drop.classList.remove('is-over');
+  }));
+  drop.addEventListener('drop', (e) => take(e.dataTransfer.files));
+
+  libBtn.onclick = () => openMedia((url) => { set(url); closeModals(); });
+  clrBtn.onclick = () => set('');
+
+  drop.append(img, empty, file);
+  box.append(drop, row);
+  paint();
+  return box;
+}
+
 function buildField(field) {
   const wrap = el('div', 'field');
   wrap.dataset.key = field.key;
@@ -200,20 +283,11 @@ function buildField(field) {
     wrap.append(ta);
 
   } else if (field.type === 'image') {
-    const img = el('img', 'thumb');
-    img.alt = '';
-    img.src = field.value || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22/%3E';
-    const row = el('div', 'sub');
-    const pickBtn = el('button', 'tool', 'Choose image…');
-    pickBtn.type = 'button';
-    pickBtn.onclick = () => openMedia((url) => {
-      img.src = url;
+    const picker = imagePicker(field.value, (url) => {
+      markPending(wrap);
       send({ type: 'cms:set', key: field.key, field: 'src', value: url });
       save(field.key, { src: url }, 0, field.scope);
-      markPending(wrap);
-      closeModals();
     });
-    row.append(pickBtn);
 
     const altRow = el('div', 'sub');
     altRow.append(el('label', null, 'Alt'));
@@ -227,7 +301,7 @@ function buildField(field) {
       save(field.key, { alt: alt.value }, undefined, field.scope);
     });
     altRow.append(alt);
-    wrap.append(img, row, altRow);
+    wrap.append(picker, altRow);
 
   } else {
     const input = el('input');
@@ -328,18 +402,7 @@ function buildMediaPanel(group) {
     row.append(head);
 
     if (block.kind === 'image') {
-      const thumb = el('img', 'thumb');
-      thumb.alt = '';
-      if (block.src) thumb.src = block.src; else thumb.classList.add('is-empty');
-      row.append(thumb);
-
-      const choose = el('button', 'tool wide', block.src ? 'Change image' : 'Choose an image…');
-      choose.type = 'button';
-      choose.onclick = () => openMedia((url) => {
-        block.src = url;
-        closeModals(); paint(); persist();
-      });
-      row.append(choose);
+      row.append(imagePicker(block.src, (url) => { block.src = url; persist(); }));
 
       row.append(labelledInput('Alt text', block.alt || '',
         'Describe the picture for screen readers', (v) => { block.alt = v; }, persist));
@@ -490,6 +553,8 @@ window.addEventListener('message', (e) => {
 /* --------------------------------------------------------------- modals */
 function closeModals() {
   document.querySelectorAll('.modal').forEach((m) => { m.hidden = true; });
+  // Otherwise the next plain visit to the library still acts as a picker.
+  mediaPick = null;
 }
 document.addEventListener('click', (e) => {
   if (e.target.matches('[data-close]') || e.target.classList.contains('modal')) closeModals();
