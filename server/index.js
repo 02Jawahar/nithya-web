@@ -30,7 +30,9 @@ site.use('/uploads', express.static(store.UPLOADS_DIR, {
 
 // Managed pages, rendered with whatever is currently published.
 function servePage(file, res) {
-  const out = renderPage(file, store.pageLive(file), { revision: store.revision() });
+  const out = renderPage(file, store.pageLive(file), {
+    revision: store.revision(), site: store.siteLive(),
+  });
   res.setHeader('Cache-Control', 'no-cache');
   res.type('html').send(out.html);
 }

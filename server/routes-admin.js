@@ -104,7 +104,7 @@ function buildRouter() {
   api.get('/page/:file', (req, res) => {
     const file = pageOr404(req, res);
     if (!file) return;
-    const result = inspectPage(file, store.pageDraft(file));
+    const result = inspectPage(file, store.pageDraft(file), store.siteDraft());
     const pending = new Set(store.pendingChanges()[file] || []);
     for (const f of result.fields) f.pending = pending.has(f.key);
     for (const g of result.groups) if (g.key) g.pending = pending.has(g.key);
@@ -121,7 +121,7 @@ function buildRouter() {
 
     // Accept the reset flag at either level.
     if (patch.reset === true || body.reset === true) {
-      store.resetField(file, key);
+      store.resetField(body.scope === 'site' ? store.SITE_KEY : file, key);
       return res.json({ ok: true, reset: true, pendingCount: store.pendingCount() });
     }
 
@@ -130,7 +130,10 @@ function buildRouter() {
       if (typeof patch[name] === 'string') clean[name] = patch[name].slice(0, 20000);
     }
     if (typeof patch.hidden === 'boolean') clean.hidden = patch.hidden;
-    store.setField(file, key, clean);
+
+    // Site-wide settings belong to every page, so they are stored once.
+    const target = body.scope === 'site' ? store.SITE_KEY : file;
+    store.setField(target, key, clean);
     res.json({ ok: true, pendingCount: store.pendingCount() });
   });
 
@@ -231,7 +234,9 @@ function buildRouter() {
   router.get('/preview/:file', auth.requireAdmin, (req, res) => {
     const file = req.params.file;
     if (!isManaged(file)) return res.status(404).send('Unknown page');
-    const out = renderPage(file, store.pageDraft(file), { preview: true, basePath: req.baseUrl });
+    const out = renderPage(file, store.pageDraft(file), {
+      preview: true, basePath: req.baseUrl, site: store.siteDraft(),
+    });
     res.type('html').send(out.html);
   });
 

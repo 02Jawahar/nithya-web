@@ -80,11 +80,11 @@ function send(message) {
 }
 
 const savers = new Map();
-function save(key, patch, delay) {
+function save(key, patch, delay, scope) {
   clearTimeout(savers.get(key));
   savers.set(key, setTimeout(async () => {
     try {
-      const res = await json('/page/' + state.current + '/field', 'POST', { key, patch });
+      const res = await json('/page/' + state.current + '/field', 'POST', { key, patch, scope });
       state.pendingCount = res.pendingCount;
       paintPending();
       refreshCounts();
@@ -146,14 +146,14 @@ function buildField(field) {
     hideBtn.textContent = now ? 'Hidden' : 'Hide';
     markPending(wrap);
     send({ type: 'cms:hidden', key: field.key, value: now });
-    save(field.key, { hidden: now }, 0);
+    save(field.key, { hidden: now }, 0, field.scope);
   };
 
   const resetBtn = el('button', 'tool', 'Reset');
   resetBtn.type = 'button';
   resetBtn.title = 'Back to the original wording';
   resetBtn.onclick = async () => {
-    await json('/page/' + state.current + '/field', 'POST', { key: field.key, patch: { reset: true } })
+    await json('/page/' + state.current + '/field', 'POST', { key: field.key, patch: { reset: true }, scope: field.scope })
       .catch((e) => toast(e.message, 'bad'));
     await loadPage(state.current);
     reloadFrame();
@@ -185,7 +185,7 @@ function buildField(field) {
     editable.addEventListener('input', () => {
       markPending(wrap);
       send({ type: 'cms:set', key: field.key, field: 'html', value: editable.innerHTML });
-      save(field.key, { html: editable.innerHTML });
+      save(field.key, { html: editable.innerHTML }, undefined, field.scope);
     });
     wrap.append(richToolbar(editable), editable);
 
@@ -195,7 +195,7 @@ function buildField(field) {
     ta.addEventListener('focus', focusInFrame);
     ta.addEventListener('input', () => {
       markPending(wrap);
-      save(field.key, { text: ta.value });
+      save(field.key, { text: ta.value }, undefined, field.scope);
     });
     wrap.append(ta);
 
@@ -209,7 +209,7 @@ function buildField(field) {
     pickBtn.onclick = () => openMedia((url) => {
       img.src = url;
       send({ type: 'cms:set', key: field.key, field: 'src', value: url });
-      save(field.key, { src: url }, 0);
+      save(field.key, { src: url }, 0, field.scope);
       markPending(wrap);
       closeModals();
     });
@@ -224,7 +224,7 @@ function buildField(field) {
     alt.addEventListener('input', () => {
       markPending(wrap);
       send({ type: 'cms:set', key: field.key, field: 'alt', value: alt.value });
-      save(field.key, { alt: alt.value });
+      save(field.key, { alt: alt.value }, undefined, field.scope);
     });
     altRow.append(alt);
     wrap.append(img, row, altRow);
@@ -237,7 +237,7 @@ function buildField(field) {
     input.addEventListener('input', () => {
       markPending(wrap);
       send({ type: 'cms:set', key: field.key, field: 'text', value: input.value });
-      save(field.key, { text: input.value });
+      save(field.key, { text: input.value }, undefined, field.scope);
     });
     wrap.append(input);
   }
@@ -252,7 +252,7 @@ function buildField(field) {
     href.addEventListener('input', () => {
       markPending(wrap);
       send({ type: 'cms:set', key: field.key, field: 'href', value: href.value });
-      save(field.key, { href: href.value });
+      save(field.key, { href: href.value }, undefined, field.scope);
     });
     row.append(href);
     wrap.append(row);

@@ -96,7 +96,9 @@ function renderPage(file, overrides, opts) {
   if (!o.preview && cache.has(cacheKey)) return cache.get(cacheKey);
 
   const $ = cheerio.load(readSource(file));
-  const result = analyze($, { overrides: overrides || {}, preview: !!o.preview });
+  const result = analyze($, {
+    overrides: overrides || {}, site: o.site || {}, preview: !!o.preview,
+  });
 
   $('head').append('<style data-cms-runtime>' + RUNTIME_CSS + '</style>');
   if (o.preview) {
@@ -113,9 +115,9 @@ function renderPage(file, overrides, opts) {
 }
 
 // Field inventory for the admin UI, without rendering anything live.
-function inspectPage(file, overrides) {
+function inspectPage(file, overrides, site) {
   const $ = cheerio.load(readSource(file));
-  return analyze($, { overrides: overrides || {}, preview: false });
+  return analyze($, { overrides: overrides || {}, site: site || {}, preview: false });
 }
 
 function clearCache() {

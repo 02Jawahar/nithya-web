@@ -134,6 +134,14 @@ p:last-child { margin-bottom: 0; }
   text-decoration: none; color: var(--ink);
   font-family: var(--serif); font-size: 1.16rem; font-weight: 600; letter-spacing: -.02em;
 }
+.brand__logo {
+  height: 34px; width: auto; max-width: 150px;
+  object-fit: contain; flex: none; display: block;
+}
+/* No logo uploaded yet: fall back to the NL initials mark. */
+.brand__logo[data-cms-empty] { display: none; }
+.brand__logo:not([data-cms-empty]) + .brand__mark { display: none; }
+
 .brand__mark {
   width: 34px; height: 34px; border-radius: 50%;
   display: grid; place-items: center;

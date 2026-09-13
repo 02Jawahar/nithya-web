@@ -59,8 +59,16 @@ client types  ->  draft  ->  [Preview]        (only signed-in admins see this)
 | Images | Replace the fixed image slots (such as the homepage portrait), **and add new images** to any section. |
 | Video | Add a video to any section — paste a YouTube or Vimeo link, or upload an MP4/WebM/MOV. |
 | Files | Swap the Banyan Nation research PDF, or add new downloads. |
+| Logo | Upload a logo once; it replaces the "NL" initials in the header and footer of **every** page. |
 | SEO | Page title and search description per page. |
 | Show / hide | Switch any single item, or a whole section, off the site without deleting it — and back on later. |
+
+### The logo
+
+The logo is a site-wide setting rather than a field per page - it appears
+in the header and footer of all six pages, so it is uploaded once under
+**Logo (all pages)** and applied everywhere. With nothing uploaded the
+original "NL" initials mark is used, and clearing the logo returns to it.
 
 ### Adding images and video
 

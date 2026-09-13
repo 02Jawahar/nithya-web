@@ -1,6 +1,6 @@
 'use strict';
 const { sanitizeHtml, sanitizeText, safeUrl } = require('./sanitize');
-const { cleanBlock, renderStack } = require('./media');
+const { cleanBlock, renderStack, safeSrc } = require('./media');
 
 // Tags that count as "just formatting" - an element whose only element
 // children are these is a leaf the editor can own outright.
@@ -93,6 +93,7 @@ function sectionLabel($, el) {
 function analyze($, options) {
   const opts = options || {};
   const overrides = opts.overrides || {};
+  const site = opts.site || {};
   const preview = !!opts.preview;
   const groups = [];
   const fields = [];
@@ -127,6 +128,27 @@ function analyze($, options) {
       key: '@description', type: 'textarea', label: 'Search description',
       value: descEl.attr('content') || '', original, hidden: false,
       hint: 'The grey summary line under the title in Google. Around 155 characters.',
+    });
+  }
+
+  // ---- Site-wide settings ---------------------------------------------
+  // The logo appears in the header and footer of every page, so it is one
+  // setting applied to all of them rather than a field per occurrence.
+  const logos = $('.brand__logo');
+  if (logos.length) {
+    const ov = site['@logo'] || {};
+    const src = typeof ov.src === 'string' ? safeSrc(ov.src) : '';
+    const alt = typeof ov.alt === 'string' ? sanitizeText(ov.alt) : 'Nitya Lanka';
+    logos.each((_, el) => {
+      if (src) { $(el).attr('src', src).attr('alt', alt).removeAttr('data-cms-empty'); }
+      else { $(el).attr('data-cms-empty', '1'); }
+    });
+    const siteGroup = addGroup('site', 'Logo (all pages)', null);
+    siteGroup.isSite = true;
+    emit(siteGroup, {
+      key: '@logo', type: 'image', label: 'Site logo', scope: 'site', hidden: false,
+      value: src, alt: alt, original: '', originalAlt: 'Nitya Lanka',
+      hint: 'Used in the header and footer of every page. Leave empty to keep the "NL" initials.',
     });
   }
 
@@ -198,7 +220,7 @@ function analyze($, options) {
       key, type: 'image', label: labelFor(el), tag: el.tagName, hidden: false,
       original: $(el).attr('src') || '', originalAlt: $(el).attr('alt') || '',
     };
-    if (typeof ov.src === 'string') $(el).attr('src', ov.src);
+    if (typeof ov.src === 'string') $(el).attr('src', safeSrc(ov.src));
     if (typeof ov.alt === 'string') $(el).attr('alt', sanitizeText(ov.alt));
     field.value = $(el).attr('src') || '';
     field.alt = $(el).attr('alt') || '';
@@ -214,6 +236,10 @@ function analyze($, options) {
     for (const child of kids(el)) {
       if (SKIP.has(child.tagName)) continue;
       const $c = $(child);
+
+      // The logo is a site-wide setting, so it must not also appear as a
+      // per-page image field - that would be two ways to edit one element.
+      if ($c.hasClass('brand__logo')) continue;
 
       if (child.tagName === 'img' || $c.attr('data-cms-slot') === 'image') {
         addImageField(child, group);

@@ -51,9 +51,21 @@ function persist() {
   writeJson(CONTENT_FILE, state);
 }
 
+// Settings that apply to every page (the logo, for now) live under a
+// reserved page key, so draft/publish/versioning all work unchanged.
+const SITE_KEY = '@site';
+
 function pageDraft(file) {
   const s = load();
   return s.draft[file] || {};
+}
+
+function siteDraft() {
+  return load().draft[SITE_KEY] || {};
+}
+
+function siteLive() {
+  return load().live[SITE_KEY] || {};
 }
 
 function pageLive(file) {
@@ -236,8 +248,8 @@ function sessionSecret() {
 }
 
 module.exports = {
-  DATA_DIR, UPLOADS_DIR, VERSIONS_DIR,
-  ensureDirs, load, pageDraft, pageLive, setField, resetField,
+  DATA_DIR, UPLOADS_DIR, VERSIONS_DIR, SITE_KEY,
+  ensureDirs, load, pageDraft, pageLive, siteDraft, siteLive, setField, resetField,
   pendingChanges, pendingCount, publish, discardDraft,
   listVersions, restoreVersion, revision,
   ensureAdmin, setPassword, verify, sessionSecret, readAdmin,
